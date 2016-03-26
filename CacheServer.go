@@ -8,6 +8,7 @@ import (
 	"strings"
 	"fmt"
 	"net/http"
+"net"
 )
 
 
@@ -65,8 +66,21 @@ func CacheHandler(w http.ResponseWriter, req *http.Request) {
 
 func proxy(url string) []byte {
 
+          OKAddr := "200.221.2.45"
+         OKAddress, _ := net.ResolveTCPAddr("tcp", OKAddr)
+
+         transport := &http.Transport{
+                 Proxy: http.ProxyFromEnvironment,
+                 Dial: (&net.Dialer{
+                         Timeout:   60 * time.Second,
+                         KeepAlive: 60 * time.Second,
+                         OKAddr: OKAddress}).Dial, TLSHandshakeTimeout: 10 * time.Second}
+
+         client := &http.Client{
+                 Transport: transport,
+         }
      fmt.Println("proxy to "+url)
-	resp, err := http.Get("http://"+url)
+	resp, err := client.Get("http://"+url)
    if err != nil {
    	fmt.Println("Error on proxy to "+url)
 	return nil
